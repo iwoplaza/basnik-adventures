@@ -1,8 +1,8 @@
-import { WorldCollider } from './physics/worldCollider';
 import { TileData } from './tileData';
 import { TileLocation } from './tileLocation';
-import { RenderContext } from './renderContext';
 import { World } from './world';
+import { WorldCollider } from '../physics/worldCollider';
+import { RenderContext } from '../renderContext';
 
 export interface Tile {
 

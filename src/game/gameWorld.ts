@@ -1,32 +1,30 @@
-import { World } from '../engine/world';
 import { Vector2 } from '../engine/vector';
 import { WorldCollider } from '../engine/physics/worldCollider';
 import { Entity } from '../engine/entity';
 import { UpdateContext } from '../engine/updateContext';
 import { RenderContext } from '../engine/renderContext';
-import { TileMap } from '../engine/tileMap';
-import { getTile } from '../engine/tileRegistry';
-import { TileLocation } from '../engine/tileLocation';
-import { GROUND_TILE } from './gameTiles';
+import { TileMap } from '../engine/world/tileMap';
+import { getTile } from '../engine/world/tileRegistry';
+import { World } from '../engine/world/world';
+import { TileLocation } from '../engine/world/tileLocation';
 
 export class GameWorld implements World {
 
     private entities: Entity<GameWorld>[]
-    private tileMap: TileMap
+    public tileMap: TileMap
     private collider: WorldCollider
 
-    constructor(private width: number, private height: number) {
+    constructor(public width: number, public height: number) {
         this.entities = [];
         this.tileMap = new TileMap(width, height);
         this.collider = { lineSegments: [] };
+    }
 
-        for (let x = 0; x < this.width; ++x) {
-            for (let y = this.height / 2; y < this.height; ++y) {
-                this.tileMap.setTile([ x, y ], { id: GROUND_TILE });
-            }
-        }
-
-        this.compileCollider();
+    setWorldSize(width: number, height: number): void {
+        this.width = width;
+        this.height = height;
+        this.tileMap = new TileMap(width, height);
+        this.collider = { lineSegments: [] };
     }
 
     update(ctx: UpdateContext): void {

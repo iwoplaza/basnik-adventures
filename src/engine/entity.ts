@@ -1,12 +1,14 @@
 import { RenderContext } from './renderContext';
 import { UpdateContext } from './updateContext';
-import { World } from './world';
+import { Vector2, lerp } from './vector';
+import { World } from './world/world';
 
 export abstract class Entity<T extends World> {
     
-    protected x: number;
-    protected y: number;
-    protected world: T;
+    protected world: T
+
+    protected prevPosition: Vector2
+    protected nextPosition: Vector2
     
     constructor() {}
 
@@ -17,5 +19,11 @@ export abstract class Entity<T extends World> {
     abstract update(ctx: UpdateContext): void;
     
     abstract draw(ctx: RenderContext): void;
+
+    public getPrevPosition() { return this.prevPosition }
+    
+    public getNextPosition() { return this.nextPosition }
+
+    public getInterPosition(tween: number) { return lerp(this.prevPosition, this.nextPosition, tween) }
 
 }

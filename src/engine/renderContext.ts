@@ -3,6 +3,7 @@ export interface RenderContext extends CanvasRenderingContext2D {
     height: number
     tileWidth: number
     tileHeight: number
+    gameScale: number
     partialTick: number
     deltaTime: number
 }

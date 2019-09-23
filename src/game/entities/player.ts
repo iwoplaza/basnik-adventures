@@ -5,15 +5,15 @@ import { LineSegment, projectOntoLineSegmentClamped, createLineSegment } from '.
 import { Vector2, sub, normalize, distance, scale, add, length, dot, lerp } from '../../engine/vector';
 import { UpdateContext } from '../../engine/updateContext';
 import { GameWorld } from '../gameWorld';
+import { pixelizeVector } from '../../engine/utils';
+import { HAMSTER } from '../textures';
 
 const worldSegment: LineSegment = createLineSegment([0, 10], [5, 7]);
 
 export class Player extends Entity<GameWorld> {
 
-    private prevPosition: Vector2
-    private nextPosition: Vector2
     private velocity: Vector2
-
+    private turnSide: boolean
     private onGround: boolean
     private groundNormal: Vector2
 
@@ -29,6 +29,7 @@ export class Player extends Entity<GameWorld> {
         this.nextPosition = [ 0, 0 ];
         this.velocity = [ 0, 0 ];
 
+        this.turnSide = true;
         this.onGround = false;
         this.groundNormal = [ 0, 0 ];
     }
@@ -52,10 +53,11 @@ export class Player extends Entity<GameWorld> {
 
         this.velocity = add(this.velocity, Player.GRAVITY);
 
-        const moveVelocity = 10 * moveDirection;
+        const moveVelocity = Player.RUN_SPEED * moveDirection;
 
         if (moveDirection > 0)
         {
+            this.turnSide = true;
             if (this.velocity[0] < moveVelocity)
             {
                 this.velocity[0] += Player.ACCELERATION;
@@ -71,6 +73,7 @@ export class Player extends Entity<GameWorld> {
         }
         else if (moveDirection < 0)
         {
+            this.turnSide = false;
             if (this.velocity[0] > moveVelocity)
             {
                 this.velocity[0] -= Player.ACCELERATION;
@@ -90,6 +93,8 @@ export class Player extends Entity<GameWorld> {
         }
 
         this.nextPosition = add(this.nextPosition, this.velocity);
+        
+        this.onGround = false;
 
         for (const segment of this.world.getCollider(this.nextPosition).lineSegments) {
             this.collideWithSegment(segment);
@@ -102,20 +107,20 @@ export class Player extends Entity<GameWorld> {
         const prevToNextNormal = normalize(sub(this.nextPosition, this.prevPosition));
         const prevToNextDist = distance(this.prevPosition, this.nextPosition);
 
-        const radius = 0.2;
+        const radius = 0.3;
         const interval = 0.1;
 
         let progress = Math.min(interval, prevToNextDist);
         let interPosition = add(this.prevPosition, scale(prevToNextNormal, progress));
 
-        const endCenter = add(this.nextPosition, [ 0, radius ]);
+        const endCenter = [ ...this.nextPosition] as Vector2;
         const endCenterProj = projectOntoLineSegmentClamped(endCenter, segment);
         const endCenterToProj = sub(endCenterProj, endCenter);
         const endDist = length(endCenterToProj);
         
         do
         {
-            const center = add(interPosition, [ 0, radius ]);
+            const center = [ ...interPosition ] as Vector2;
             const proj = projectOntoLineSegmentClamped(center, segment);
             const centerToProj = sub(proj, center);
             let centerToProjNormal = normalize(centerToProj);
@@ -184,25 +189,27 @@ export class Player extends Entity<GameWorld> {
     }
 
     private jump(): void {
-        this.velocity[1] = -0.5;
+        if (this.onGround) {
+            this.velocity[1] = -0.3;
+        }
     }
 
     public draw(ctx: RenderContext): void {
-        for (const segment of this.world.getCollider(this.nextPosition).lineSegments) {
-            ctx.beginPath();
-            ctx.lineWidth = 0.1;
-            ctx.moveTo(...segment.point1);
-            ctx.lineTo(...segment.point2);
-            ctx.stroke();
-        }
+        // for (const segment of this.world.getCollider(this.nextPosition).lineSegments) {
+        //     ctx.beginPath();
+        //     ctx.lineWidth = 0.1;
+        //     ctx.moveTo(...segment.point1);
+        //     ctx.lineTo(...segment.point2);
+        //     ctx.stroke();
+        // }
         
         ctx.save();
 
-        const interPos = lerp(this.prevPosition, this.nextPosition, ctx.partialTick);
+        const interPos = pixelizeVector(ctx, lerp(this.prevPosition, this.nextPosition, ctx.partialTick));
         ctx.translate(...interPos);
+        ctx.scale(this.turnSide ? 1 : -1, 1);
 
-        ctx.fillStyle = 'red';
-        ctx.fillRect(0, 0, 1, 1);
+        ctx.drawImage(HAMSTER.image, -0.5, -0.5, 1, 1);
 
         ctx.restore();
     }
