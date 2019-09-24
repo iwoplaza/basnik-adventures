@@ -64,13 +64,16 @@ export class GameWorld implements World {
     }
 
     compileCollider(): void {
+        // World boundaries
         this.collider = { lineSegments: [
             createLineSegment([ 0, 0 ], [ 0, this.height ]),
             createLineSegment([ 0, this.height ], [ this.width, this.height ]),
             createLineSegment([ this.width, this.height ], [ this.width, 0 ]),
-            createLineSegment([ this.width, 0 ], [ 0, 0 ]),
+            // No ceiling
+            // createLineSegment([ this.width, 0 ], [ 0, 0 ]),
         ] };
 
+        // Tile colliders
         for (let x = 0; x < this.width; ++x) {
             for (let y = 0; y < this.height; ++y) {
                 const location: TileLocation = [ x, y ];

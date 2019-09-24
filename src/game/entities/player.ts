@@ -1,7 +1,7 @@
 import { Entity } from '../../engine/entity';
 import { RenderContext } from '../../engine/renderContext';
 import { getKey } from '../../engine/inputManager';
-import { LineSegment, projectOntoLineSegmentClamped, createLineSegment } from '../../engine/physics/lineSegment';
+import { LineSegment, projectOntoLineSegmentClamped } from '../../engine/physics/lineSegment';
 import { Vector2, sub, normalize, distance, scale, add, length, dot, lerp, distanceSq } from '../../engine/vector';
 import { UpdateContext } from '../../engine/updateContext';
 import { GameWorld } from '../gameWorld';
@@ -9,6 +9,8 @@ import { pixelizeVector } from '../../engine/utils';
 import { HAMSTER } from '../textures';
 import { Sprite } from '../../engine/graphics/sprite';
 import { Seed } from './seed';
+import { Mushroom } from './mushroom';
+import { lineSegmentsFromBoxCollider } from '../../engine/physics/boxCollider';
 
 const sprite = new Sprite(HAMSTER, [ 32, 32 ]);
 
@@ -19,6 +21,8 @@ export class Player extends Entity<GameWorld> {
     private onGround: boolean
     private walking: boolean
     private groundNormal: Vector2
+
+    public points: number
 
     private walkCycle = 0
 
@@ -38,6 +42,8 @@ export class Player extends Entity<GameWorld> {
         this.onGround = false;
         this.walking = false;
         this.groundNormal = [ 0, 0 ];
+
+        this.points = 0;
 
         this.walkCycle = 0;
     }
@@ -118,7 +124,7 @@ export class Player extends Entity<GameWorld> {
         }
 
         for (const entity of this.world.entities) {
-            if (entity === this) {
+            if (entity === this || entity.isDead) {
                 continue;
             }
 
@@ -126,12 +132,23 @@ export class Player extends Entity<GameWorld> {
                 const dist = distanceSq(this.nextPosition, entity.getNextPosition());
                 if (dist < 0.2) {
                     entity.onCollected();
+                    this.points++;
+                }
+            }
+
+            if (entity instanceof Mushroom) {
+                const segments = lineSegmentsFromBoxCollider(entity.getCollider());
+                const collided = segments.map((s) => this.collideWithSegment(s)).some(result => result === true);
+
+                if (collided && this.velocity[1] > 0 && this.nextPosition[1] < entity.getNextPosition()[1] + 0.5) {
+                    this.velocity[1] = -0.5;
+                    entity.onBounce();
                 }
             }
         }
     }
 
-    private collideWithSegment(segment: LineSegment): void {
+    private collideWithSegment(segment: LineSegment): boolean {
         const n = segment.normal;
 
         const prevToNextNormal = normalize(sub(this.nextPosition, this.prevPosition));
@@ -163,7 +180,7 @@ export class Player extends Entity<GameWorld> {
                 const direction = dot(n, prevToNextNormal);
                 
                 if (direction >= 0)
-                    return;
+                    return false;
                 
                 const nextPosNormalDot = dot(centerToProjNormal, endCenterToProj);
                 if (nextPosNormalDot < 0)
@@ -183,7 +200,7 @@ export class Player extends Entity<GameWorld> {
                 this.velocity = add(this.velocity, centerToProjNormal);
 
                 // Already collided, no need for more checks
-                return;
+                return true;
             }
 
             if (progress >= prevToNextDist)
@@ -201,6 +218,8 @@ export class Player extends Entity<GameWorld> {
             }
         }
         while (progress <= prevToNextDist);
+
+        return false;
     }
 
     private decelerate(): void {
@@ -240,7 +259,10 @@ export class Player extends Entity<GameWorld> {
         ctx.scale(this.turnSide ? 1 : -1, 1);
 
         let frame: Vector2 = [ 0, 0 ];
-        if (this.walking) {
+        
+        if (!this.onGround) {
+            frame = [ 0, 2 ];
+        } else if (this.walking) {
             this.walkCycle += ctx.deltaTime * 8;
             const cycle = (this.walkCycle % 4 / 4);
 
@@ -248,8 +270,7 @@ export class Player extends Entity<GameWorld> {
 
             const walkFrame = tweenWalkCycle(cycle, 0.7);
 
-            frame[0] = walkFrame;
-            frame[1] = 1;
+            frame = [ walkFrame, 1 ];
         }
 
         sprite.drawFrame(ctx, frame, [ -0.5, -0.5 ]);
