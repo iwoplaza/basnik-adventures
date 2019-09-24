@@ -63,7 +63,10 @@ export function createEngine(canvas: HTMLCanvasElement, tileWidth: number, tileH
     ctx.height = canvas.height;
     ctx.tileWidth = tileWidth;
     ctx.tileHeight = tileHeight;
-    ctx.gameScale = 3;
+    ctx.gameScale = 2;
+
+    // Disabling filtering
+    ctx.imageSmoothingEnabled = false;
 
     return new Engine(ctx);
 }

@@ -9,11 +9,17 @@ export abstract class Entity<T extends World> {
 
     protected prevPosition: Vector2
     protected nextPosition: Vector2
+    protected dead: boolean
     
     constructor() {}
 
     onSpawned(world: T): void {
         this.world = world;
+        this.dead = false;
+    }
+
+    public get isDead() {
+        return this.dead;
     }
 
     abstract update(ctx: UpdateContext): void;

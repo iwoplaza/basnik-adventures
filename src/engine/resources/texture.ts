@@ -21,7 +21,9 @@ export class Texture implements Resource {
                 return;
             }
 
-            this.image.onload = () => resolve();
+            this.image.onload = () => {
+                resolve();
+            };
             this.image.onerror = (e) => reject(e);
         });
     }

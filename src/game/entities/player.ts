@@ -2,20 +2,25 @@ import { Entity } from '../../engine/entity';
 import { RenderContext } from '../../engine/renderContext';
 import { getKey } from '../../engine/inputManager';
 import { LineSegment, projectOntoLineSegmentClamped, createLineSegment } from '../../engine/physics/lineSegment';
-import { Vector2, sub, normalize, distance, scale, add, length, dot, lerp } from '../../engine/vector';
+import { Vector2, sub, normalize, distance, scale, add, length, dot, lerp, distanceSq } from '../../engine/vector';
 import { UpdateContext } from '../../engine/updateContext';
 import { GameWorld } from '../gameWorld';
 import { pixelizeVector } from '../../engine/utils';
 import { HAMSTER } from '../textures';
+import { Sprite } from '../../engine/graphics/sprite';
+import { Seed } from './seed';
 
-const worldSegment: LineSegment = createLineSegment([0, 10], [5, 7]);
+const sprite = new Sprite(HAMSTER, [ 32, 32 ]);
 
 export class Player extends Entity<GameWorld> {
 
     private velocity: Vector2
     private turnSide: boolean
     private onGround: boolean
+    private walking: boolean
     private groundNormal: Vector2
+
+    private walkCycle = 0
 
     private static readonly WALK_SPEED = 0.07
     private static readonly RUN_SPEED = 0.22
@@ -31,20 +36,32 @@ export class Player extends Entity<GameWorld> {
 
         this.turnSide = true;
         this.onGround = false;
+        this.walking = false;
         this.groundNormal = [ 0, 0 ];
+
+        this.walkCycle = 0;
+    }
+
+    public moveTo(position: Vector2): void {
+        this.prevPosition = [ ...position ] as Vector2;
+        this.nextPosition = [ ...position ] as Vector2;
     }
 
     public update(ctx: UpdateContext): void {
         this.prevPosition = [ ...this.nextPosition ] as Vector2;
-        
+
+        this.walking = false;
+
         let moveDirection = 0;
 
         if (getKey(65)) {
             moveDirection = -1;
+            this.walking = true;
         }
 
         if (getKey(68)) {
             moveDirection = 1;
+            this.walking = true;
         }
 
         if (getKey(32)) {
@@ -98,6 +115,19 @@ export class Player extends Entity<GameWorld> {
 
         for (const segment of this.world.getCollider(this.nextPosition).lineSegments) {
             this.collideWithSegment(segment);
+        }
+
+        for (const entity of this.world.entities) {
+            if (entity === this) {
+                continue;
+            }
+
+            if (entity instanceof Seed) {
+                const dist = distanceSq(this.nextPosition, entity.getNextPosition());
+                if (dist < 0.2) {
+                    entity.onCollected();
+                }
+            }
         }
     }
 
@@ -209,9 +239,36 @@ export class Player extends Entity<GameWorld> {
         ctx.translate(...interPos);
         ctx.scale(this.turnSide ? 1 : -1, 1);
 
-        ctx.drawImage(HAMSTER.image, -0.5, -0.5, 1, 1);
+        let frame: Vector2 = [ 0, 0 ];
+        if (this.walking) {
+            this.walkCycle += ctx.deltaTime * 8;
+            const cycle = (this.walkCycle % 4 / 4);
+
+            ctx.translate(Math.sin(cycle * Math.PI * 4) * 0.03, 0);
+
+            const walkFrame = tweenWalkCycle(cycle, 0.7);
+
+            frame[0] = walkFrame;
+            frame[1] = 1;
+        }
+
+        sprite.drawFrame(ctx, frame, [ -0.5, -0.5 ]);
 
         ctx.restore();
     }
 
+}
+
+function tweenWalkCycle(cycle: number, extremeProportion: number): number {
+    const inbetweenProportion = 1 - extremeProportion;
+    let frame = 3;
+    if (cycle < extremeProportion / 2) {
+        frame = 0;
+    } else if (cycle < 0.5) {
+        frame = 1;
+    } else if (cycle < 0.5 + extremeProportion / 2) {
+        frame = 2;
+    }
+
+    return frame;
 }

@@ -7,10 +7,11 @@ import { TileMap } from '../engine/world/tileMap';
 import { getTile } from '../engine/world/tileRegistry';
 import { World } from '../engine/world/world';
 import { TileLocation } from '../engine/world/tileLocation';
+import { createLineSegment } from '../engine/physics/lineSegment';
 
 export class GameWorld implements World {
 
-    private entities: Entity<GameWorld>[]
+    public entities: Entity<GameWorld>[]
     public tileMap: TileMap
     private collider: WorldCollider
 
@@ -28,8 +29,13 @@ export class GameWorld implements World {
     }
 
     update(ctx: UpdateContext): void {
-        for (const entity of this.entities) {
+        for (let i = this.entities.length - 1; i >= 0; --i) {
+            const entity = this.entities[i];
             entity.update(ctx);
+
+            if (entity.isDead) {
+                this.entities.splice(i, 1);
+            }
         }
     }
 
@@ -58,7 +64,12 @@ export class GameWorld implements World {
     }
 
     compileCollider(): void {
-        this.collider = { lineSegments: [] };
+        this.collider = { lineSegments: [
+            createLineSegment([ 0, 0 ], [ 0, this.height ]),
+            createLineSegment([ 0, this.height ], [ this.width, this.height ]),
+            createLineSegment([ this.width, this.height ], [ this.width, 0 ]),
+            createLineSegment([ this.width, 0 ], [ 0, 0 ]),
+        ] };
 
         for (let x = 0; x < this.width; ++x) {
             for (let y = 0; y < this.height; ++y) {

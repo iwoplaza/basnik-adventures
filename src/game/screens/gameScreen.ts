@@ -4,19 +4,17 @@ import { UpdateContext } from '../../engine/updateContext';
 import { GameWorld } from '../gameWorld';
 import { Player } from '../entities/player';
 import { pixelizeVector } from '../../engine/utils';
-import { GameCamera } from '../gameCamera';
+import { Seed } from '../entities/seed';
 
 export class GameScreen implements Screen {
 
     public readonly world: GameWorld
-    private player: Player
-    private camera: GameCamera
+    public readonly player: Player
 
     constructor() {
         this.world = new GameWorld(10, 10);
         this.player = new Player();
         this.world.spawn(this.player);
-        this.camera = new GameCamera();
     }
 
     update(ctx: UpdateContext): void {
@@ -27,7 +25,12 @@ export class GameScreen implements Screen {
         ctx.fillStyle = '#9df';
         ctx.fillRect(0, 0, ctx.width, ctx.height);
 
-        const [ playerX, playerY ] = pixelizeVector(ctx, this.player.getInterPosition(ctx.partialTick));
+        const PIXELS_PER_UNIT = ctx.tileWidth * ctx.gameScale;
+
+        let [ cameraX, cameraY ] = pixelizeVector(ctx, this.player.getInterPosition(ctx.partialTick));
+
+        cameraX = Math.max(ctx.width / 2 / PIXELS_PER_UNIT, cameraX);
+        cameraY = Math.max(ctx.width / 2 / PIXELS_PER_UNIT, cameraY);
 
         ctx.save();
 
@@ -35,7 +38,7 @@ export class GameScreen implements Screen {
         ctx.scale(ctx.gameScale, ctx.gameScale);
 
         ctx.scale(ctx.tileWidth, ctx.tileHeight);
-        ctx.translate(-playerX, -playerY);
+        ctx.translate(-cameraX, -cameraY);
 
         this.world.draw(ctx);
 
