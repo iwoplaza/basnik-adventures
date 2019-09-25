@@ -11,6 +11,7 @@ import { Sprite } from '../../engine/graphics/sprite';
 import { Seed } from './seed';
 import { Mushroom } from './mushroom';
 import { lineSegmentsFromBoxCollider } from '../../engine/physics/boxCollider';
+import { BOUNCE, COLLECT } from '../gameSounds';
 
 const sprite = new Sprite(HAMSTER, [ 32, 32 ]);
 
@@ -175,6 +176,7 @@ export class Player extends Entity<GameWorld> {
                 if (dist < 0.2) {
                     entity.onCollected();
                     this.points++;
+                    COLLECT.play();
                 }
             }
 
@@ -185,6 +187,7 @@ export class Player extends Entity<GameWorld> {
                 if (collided && this.velocity[1] > 0 && this.nextPosition[1] < entity.getNextPosition()[1] + 0.5) {
                     this.velocity[1] = -0.5;
                     entity.onBounce();
+                    BOUNCE.play();
                 }
             }
         }

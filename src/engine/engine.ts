@@ -64,6 +64,8 @@ export function createEngine(canvas: HTMLCanvasElement, tileWidth: number, tileH
     ctx.tileWidth = tileWidth;
     ctx.tileHeight = tileHeight;
     ctx.gameScale = 2;
+    ctx.viewX = 0;
+    ctx.viewY = 0;
 
     // Disabling filtering
     ctx.imageSmoothingEnabled = false;

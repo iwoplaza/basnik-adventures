@@ -29,7 +29,7 @@ export class GameScreen implements Screen {
     draw(ctx: RenderContext) {
         const grd = ctx.createLinearGradient(0, 0, 0, ctx.height);
         grd.addColorStop(0, '#7cf');
-        grd.addColorStop(1, "#14a");
+        grd.addColorStop(1, '#14a');
         ctx.fillStyle = grd;
         ctx.fillRect(0, 0, ctx.width, ctx.height);
 
@@ -48,6 +48,9 @@ export class GameScreen implements Screen {
         this.cameraY += (targetCameraY - this.cameraY) * 0.6;
 
         const cameraPosition = pixelizeVector(ctx, [ this.cameraX, this.cameraY ]);
+
+        ctx.viewX = cameraPosition[0];
+        ctx.viewY = cameraPosition[1];
 
         ctx.save();
 
