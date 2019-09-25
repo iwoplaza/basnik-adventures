@@ -6,6 +6,7 @@ import { GameWorld } from '../gameWorld';
 import { TileData } from '../../engine/world/tileData';
 import { TileLocation } from '../../engine/world/tileLocation';
 import { Tile } from '../../engine/world/tile';
+import { TILESHEET_SPRITE } from '../gameTiles';
 
 export enum SlopeDirection {
     LEFT, RIGHT
@@ -13,25 +14,27 @@ export enum SlopeDirection {
 
 export class GroundSlopeTile implements Tile {
 
-    constructor(private direction: SlopeDirection) {
+    constructor(public readonly direction: SlopeDirection) {
 
     }
 
-    draw(ctx: RenderContext, data: TileData, location: TileLocation): void {
-        ctx.fillStyle = '#4a3';
-        if (this.direction === SlopeDirection.LEFT) {
-            ctx.beginPath();
-            ctx.moveTo(location[0] + 1, location[1]);
-            ctx.lineTo(location[0] + 1, location[1] + 1);
-            ctx.lineTo(location[0], location[1] + 1);
-            ctx.fill();
-        } else if (this.direction === SlopeDirection.RIGHT) {
-            ctx.beginPath();
-            ctx.moveTo(location[0], location[1]);
-            ctx.lineTo(location[0] + 1, location[1] + 1);
-            ctx.lineTo(location[0], location[1] + 1);
-            ctx.fill();
-        }
+    draw(ctx: RenderContext, world: GameWorld, data: TileData, location: TileLocation): void {
+        // ctx.fillStyle = '#4a3';
+        // if (this.direction === SlopeDirection.LEFT) {
+        //     ctx.beginPath();
+        //     ctx.moveTo(location[0] + 1, location[1]);
+        //     ctx.lineTo(location[0] + 1, location[1] + 1);
+        //     ctx.lineTo(location[0], location[1] + 1);
+        //     ctx.fill();
+        // } else if (this.direction === SlopeDirection.RIGHT) {
+        //     ctx.beginPath();
+        //     ctx.moveTo(location[0], location[1]);
+        //     ctx.lineTo(location[0] + 1, location[1] + 1);
+        //     ctx.lineTo(location[0], location[1] + 1);
+        //     ctx.fill();
+        // }
+
+        TILESHEET_SPRITE.drawFrame(ctx, [ this.direction === SlopeDirection.RIGHT ? 1 : 2, 0 ], location);
     }
 
     populateCollider(world: GameWorld, collider: WorldCollider, data: TileData, location: TileLocation): void {

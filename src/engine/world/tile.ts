@@ -6,7 +6,7 @@ import { RenderContext } from '../renderContext';
 
 export interface Tile {
 
-    draw(ctx: RenderContext, data: TileData, location: TileLocation): void
+    draw(ctx: RenderContext, world: World, data: TileData, location: TileLocation): void
 
     populateCollider(world: World, collider: WorldCollider, data: TileData, location: TileLocation): void
 

@@ -2,35 +2,42 @@ import { createEngine } from './engine/engine';
 import { GameScreen } from './game/screens/gameScreen';
 import { GROUND_TILE, GROUND_SLOPE_LEFT_TILE, GROUND_SLOPE_RIGHT_TILE } from './game/gameTiles';
 import { loadAll } from './engine/resources/resourceLoader';
-import { HAMSTER } from './game/textures';
+import { HAMSTER, SEED, MUSHROOM, TILESHEET } from './game/textures';
 import { Seed } from './game/entities/seed';
 import { Mushroom } from './game/entities/mushroom';
 
 const engine = createEngine(document.getElementById('canvas') as HTMLCanvasElement, 32, 32);
 
 const map = [
-    '                                                                ',
-    '                                      oooooooooooooooooooooooooo',
-    '                                   ooooooooooooooooooooooooooooo',
-    '                                 ooooooooooooooooooooooooooooooo',
-    '                                oooooooooooooooooooooooooooooooo',
-    '                                    oooooooooooooooooooooooooooo',
-    '                                      oooooooooooooooooooooooooo',
-    '                             loooor     oooooooooooooooooooooooo',
-    '                        loooooooooor     ooooooooo              ',
-    '            !!!        loooooooooooor                           ',
-    '                     looooooooooooooor               !!!!!!!!!  ',
-    '            lor     looooooooooooooooor            ooooooooooooo',
-    'ooooor!    loooooooooooooooooooooooooooooor        ooooooooooooo',
-    'oooooor!!!looooooooooooooooooooooooooooooooor  S  Tooooooooooooo',
-    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
-    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
-    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
-    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
-    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
-    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
-    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
-    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
+    '                                           ooooooooo                  ',
+    '                                          ooooooooooo                 ',
+    '                                         ooooooooooooo                ',
+    '                                        oooooooooooooo                ',
+    '                                      ooooooooooooooo         looooooo',
+    '                                      oooooooooooooo       loooooooooo',
+    '                                      oooooooooooooo     loooooooooooo',
+    '                                      oooooooooooooo     ooooooooooooo',
+    '                                      ooooooooooooo      ooooooooooooo',
+    '                                   oooooooooooooooo     Tooooooooooooo',
+    '                                 oooooooooooooooooo     oooooooooooooo',
+    '                                ooooooooooooooooooo      ooooooooooooo',
+    '                                    oooooooooooooooT     ooooooooooooo',
+    '                                      oooooooooooooor    ooooooooooooo',
+    '                             loooor!    oooooooooooooo   ooooooooooooo',
+    '                        loooooooooor!    ooooooooo       ooooooooooooo',
+    '            !!!        loooooooooooor!                   ooooooooooooo',
+    '                     looooooooooooooor!              !!!Tooooooooooooo',
+    '   S        lor     looooooooooooooooor!!!!        ooooooooooooooooooo',
+    'ooooor!    loooooooooooooooooooooooooooooor!       ooooooooooooooooooo',
+    'oooooor!!!looooooooooooooooooooooooooooooooor !!! Tooooooooooooooooooo',
+    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
+    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
+    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
+    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
+    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
+    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
+    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
+    'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
 ];
 
 const gameScreen = new GameScreen();
@@ -64,7 +71,7 @@ for (const line of map) {
 gameScreen.world.compileCollider();
 
 (async () => {
-    await loadAll([ HAMSTER ]);
+    await loadAll([ HAMSTER, SEED, MUSHROOM, TILESHEET ]);
 
     engine.showScreen(gameScreen);
     engine.run();

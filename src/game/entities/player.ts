@@ -20,7 +20,11 @@ export class Player extends Entity<GameWorld> {
     private turnSide: boolean
     private onGround: boolean
     private walking: boolean
+    private ballForm: boolean
+    private ballFormOrientation: number
+    private ballFormRotation: number
     private groundNormal: Vector2
+    private moveDirection: number
 
     public points: number
 
@@ -41,7 +45,11 @@ export class Player extends Entity<GameWorld> {
         this.turnSide = true;
         this.onGround = false;
         this.walking = false;
+        this.ballForm = false;
+        this.ballFormOrientation = 0;
+        this.ballFormRotation = 0;
         this.groundNormal = [ 0, 0 ];
+        this.moveDirection = 0;
 
         this.points = 0;
 
@@ -53,66 +61,100 @@ export class Player extends Entity<GameWorld> {
         this.nextPosition = [ ...position ] as Vector2;
     }
 
-    public update(ctx: UpdateContext): void {
-        this.prevPosition = [ ...this.nextPosition ] as Vector2;
-
-        this.walking = false;
-
-        let moveDirection = 0;
-
-        if (getKey(65)) {
-            moveDirection = -1;
-            this.walking = true;
-        }
-
-        if (getKey(68)) {
-            moveDirection = 1;
-            this.walking = true;
+    private handleInput(): void {
+        if (getKey(16)) {
+            if (!this.ballForm) {
+                this.ballForm = true;
+                if (!this.onGround) {
+                    // Giving initial rotation
+                    this.ballFormRotation = this.velocity[0] * 1.4;
+                }
+            }
+        } else {
+            this.ballForm = false;
         }
 
         if (getKey(32)) {
             this.jump();
         }
 
+        this.moveDirection = 0;
+        this.walking = false;
+
+        if (getKey(65)) {
+            this.moveDirection = -1;
+            this.walking = true;
+        }
+
+        if (getKey(68)) {
+            this.moveDirection = 1;
+            this.walking = true;
+        }
+    }
+
+    public update(ctx: UpdateContext): void {
+        this.prevPosition = [ ...this.nextPosition ] as Vector2;
+
+        this.handleInput();
+
         this.velocity = add(this.velocity, Player.GRAVITY);
+        if (this.ballForm) {
+            if (!this.onGround) {
+                this.velocity = add(this.velocity, scale(Player.GRAVITY, 0.7));
+            } else {
+                // Decelerating
+                if (this.velocity[0] > 0)
+                {
+                    this.velocity[0] -= 0.00125;
+                    if (this.velocity[0] < 0)
+                        this.velocity[0] = 0;
+                }
+                else if (this.velocity[0] < 0)
+                {
+                    this.velocity[0] += 0.00125;
+                    if (this.velocity[0] > 0)
+                        this.velocity[0] = 0;
+                }
+            }
+        } else {
+            const moveVelocity = Player.RUN_SPEED * this.moveDirection;
 
-        const moveVelocity = Player.RUN_SPEED * moveDirection;
-
-        if (moveDirection > 0)
-        {
-            this.turnSide = true;
-            if (this.velocity[0] < moveVelocity)
+            if (this.moveDirection > 0)
             {
-                this.velocity[0] += Player.ACCELERATION;
+                this.turnSide = true;
+                if (this.velocity[0] < moveVelocity)
+                {
+                    this.velocity[0] += Player.ACCELERATION;
+                    if (this.velocity[0] > moveVelocity)
+                        this.velocity[0] = moveVelocity;
+                }
+                else
+                {
+                    this.velocity[0] -= Player.DECELERATION;
+                    if (this.velocity[0] < moveVelocity)
+                        this.velocity[0] = moveVelocity;
+                }
+            }
+            else if (this.moveDirection < 0)
+            {
+                this.turnSide = false;
                 if (this.velocity[0] > moveVelocity)
-                    this.velocity[0] = moveVelocity;
+                {
+                    this.velocity[0] -= Player.ACCELERATION;
+                    if (this.velocity[0] < moveVelocity)
+                        this.velocity[0] = moveVelocity;
+                }
+                else
+                {
+                    this.velocity[0] += Player.DECELERATION;
+                    if (this.velocity[0] > moveVelocity)
+                        this.velocity[0] = moveVelocity;
+                }
             }
             else
             {
-                this.velocity[0] -= Player.DECELERATION;
-                if (this.velocity[0] < moveVelocity)
-                    this.velocity[0] = moveVelocity;
+                this.decelerate();
             }
-        }
-        else if (moveDirection < 0)
-        {
-            this.turnSide = false;
-            if (this.velocity[0] > moveVelocity)
-            {
-                this.velocity[0] -= Player.ACCELERATION;
-                if (this.velocity[0] < moveVelocity)
-                    this.velocity[0] = moveVelocity;
-            }
-            else
-            {
-                this.velocity[0] += Player.DECELERATION;
-                if (this.velocity[0] > moveVelocity)
-                    this.velocity[0] = moveVelocity;
-            }
-        }
-        else
-        {
-            this.decelerate();
         }
 
         this.nextPosition = add(this.nextPosition, this.velocity);
@@ -146,6 +188,18 @@ export class Player extends Entity<GameWorld> {
                 }
             }
         }
+
+        if (this.ballForm) {
+            if (this.onGround) {
+                const moved = length(sub(this.nextPosition, this.prevPosition));
+                this.ballFormRotation = this.nextPosition[0] > this.prevPosition[0] ? moved : -moved;
+            }
+        } else {
+            this.ballFormOrientation = 0;
+            this.ballFormRotation = 0;
+        }
+
+        this.ballFormOrientation += this.ballFormRotation;
     }
 
     private collideWithSegment(segment: LineSegment): boolean {
@@ -256,11 +310,14 @@ export class Player extends Entity<GameWorld> {
 
         const interPos = pixelizeVector(ctx, lerp(this.prevPosition, this.nextPosition, ctx.partialTick));
         ctx.translate(...interPos);
+        ctx.rotate(this.ballFormOrientation);
         ctx.scale(this.turnSide ? 1 : -1, 1);
 
         let frame: Vector2 = [ 0, 0 ];
         
-        if (!this.onGround) {
+        if (this.ballForm) {
+            frame = [ 0, 3 ];
+        } else if (!this.onGround) {
             frame = [ 0, 2 ];
         } else if (this.walking) {
             this.walkCycle += ctx.deltaTime * 8;

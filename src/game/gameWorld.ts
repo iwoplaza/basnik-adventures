@@ -47,7 +47,7 @@ export class GameWorld implements World {
                 if (tileData) {
                     const tile = getTile(tileData);
                     if (tile) {
-                        tile.draw(ctx, tileData, location);
+                        tile.draw(ctx, this, tileData, location);
                     }
                 }
             }

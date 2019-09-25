@@ -4,7 +4,6 @@ import { UpdateContext } from '../../engine/updateContext';
 import { GameWorld } from '../gameWorld';
 import { Player } from '../entities/player';
 import { pixelizeVector } from '../../engine/utils';
-import { Seed } from '../entities/seed';
 
 export class GameScreen implements Screen {
 
@@ -28,7 +27,7 @@ export class GameScreen implements Screen {
     }
 
     draw(ctx: RenderContext) {
-        ctx.fillStyle = '#9df';
+        ctx.fillStyle = '#49e';
         ctx.fillRect(0, 0, ctx.width, ctx.height);
 
         const PIXELS_PER_UNIT = ctx.tileWidth * ctx.gameScale;

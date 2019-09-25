@@ -17,7 +17,7 @@ export class Engine {
 
         this.currentScreen = null;
 
-        this.timer = new Timer(Engine.TARGET_UPS);
+        this.timer = new Timer(Engine.TARGET_UPS, 10);
     }
 
     public showScreen(screen: Screen): void {

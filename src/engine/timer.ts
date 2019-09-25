@@ -5,7 +5,7 @@ export class Timer {
     private lastTime: number
     private _accumulator: number
 
-    constructor(private updatesPerSecond: number) {
+    constructor(private updatesPerSecond: number, private maxTickBuildup: number) {
         this._fixedDeltaTime = 1 / updatesPerSecond;
         this.lastTime = Date.now();
         this._accumulator = 0;
@@ -17,6 +17,10 @@ export class Timer {
         this.lastTime = now;
 
         this._accumulator += deltaTime;
+
+        if (this._accumulator > this.maxTickBuildup) {
+            this._accumulator %= this.fixedDeltaTime;
+        }
 
         return deltaTime;
     }
@@ -32,6 +36,10 @@ export class Timer {
 
     public get accumulator(): number {
         return this._accumulator;
+    }
+
+    public get accumulatedTicks(): number {
+        return this._accumulator / this.fixedDeltaTime;
     }
 
     public get fixedDeltaTime(): number {
