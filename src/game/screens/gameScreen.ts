@@ -27,7 +27,10 @@ export class GameScreen implements Screen {
     }
 
     draw(ctx: RenderContext) {
-        ctx.fillStyle = '#49e';
+        const grd = ctx.createLinearGradient(0, 0, 0, ctx.height);
+        grd.addColorStop(0, '#7cf');
+        grd.addColorStop(1, "#14a");
+        ctx.fillStyle = grd;
         ctx.fillRect(0, 0, ctx.width, ctx.height);
 
         const PIXELS_PER_UNIT = ctx.tileWidth * ctx.gameScale;
